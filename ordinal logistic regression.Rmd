@@ -1,0 +1,38 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+wallet <- read.csv('C:/Users/wyatt/Downloads/Logistic Regression Data Sets (2)/wallet.csv')
+```
+
+```{r}
+train <- wallet 
+train$punish <- factor(train$punish) 
+clogit.model <- polr(factor(wallet) ~ male + business + punish + explain, 
+method = "logistic", data = train) 
+summary(clogit.model)
+```
+Brant Test for proportional odds
+```{r}
+install.packages('brant')
+library('brant')
+brant(clogit.model)
+```
+
+partial proportional odds
+```{r}
+#install.packages('VGAM')
+library('VGAM')
+plogit.model <- vglm(factor(wallet) ~ male + business + punish + explain, 
+data = train, 
+family = cumulative(parallel = F ~ business)) 
+summary(plogit.model)
+```
+predicted probabilities
+```{r}
+pred_probs <- predict(clogit.model, newdata = train, type = "probs") 
+head(pred_probs)
+```
+
