@@ -1,0 +1,68 @@
+---
+title: "EDA Walkthrough"
+output: html_notebook
+---
+
+```{r}
+summary(cars2010)
+```
+See if multi-collinearity is an issue
+
+
+```{r}
+cor(cars2010[,c(1,2,4,6,7,8,10,11,13,14)])
+```
+Going to remove NumCyl and 
+IntakeValvePerCyl
+```{r}
+ cars2010.1=cars2010[,-c(2,10)]
+```
+
+VIF and collin test
+```{r}
+collin.test=lm(FE~.,data=cars2010.1)
+vif(collin.test)
+```
+automated search algs
+```{r}
+lm.1=lm(FE~EngDispl+CarlineClassDesc+DriveDesc+ExhaustValvesPerCyl+NumGears+TransCreeperGear+AirAspirationMethod,
+        data=cars2010.1)
+
+ggplot(lm.1,aes(x=fitted.values(lm.1),y=resid(lm.1)))+geom_point()
+
+```
+
+```{r}
+ggplot(lm.1,aes(x=EngDispl,y=resid(lm.1)))+geom_point()
+
+```
+```{r}
+m.engdispl=mean(cars2010.1$EngDispl)
+cars2010.1$c.EngDispl=cars2010.1$EngDispl-m.engdispl
+ 
+lm.4=lm(FE~c.EngDispl+I(c.EngDispl^2)+CarlineClassDesc+DriveDesc+ExhaustValvesPerCyl+NumGears+TransCreeperGear+
+          AirAspirationMethod+DriveDesc:c.EngDispl + 
+c.EngDispl:NumGears,data=cars2010.1)
+```
+
+Hat values
+```{r}
+ggplot(lm.4,aes(x=hatvalues(lm.4),y=rstudent(lm.4)))+geom_point()+geom_hline(yintercept=3)+
+  geom_vline(xintercept=0.065) +labs(x="Hat Values",y="Residuals")
+
+```
+testing the findings
+```{r}
+cars2011.1=cars2011[,-c(2,3,10)]
+cars2011.1$c.EngDispl=cars2011.1$EngDispl-m.engdispl
+cars2011.1$n.index=seq(1,nrow(cars2011.1))
+
+valid.fit=predict(lm.4,newdata = cars2011.1)
+```
+
+```{r}
+MAE=mean(abs(cars2011.1$FE-valid.fit))
+
+MAE
+```
+
