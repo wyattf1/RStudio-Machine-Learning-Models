@@ -1,0 +1,71 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Studentized Residuals
+```{r}
+url = 
+'http://www.statsci.org/data/general/hills.txt' 
+races.table = read.table(url, header=TRUE, 
+sep='\t')
+n.index=seq(1,nrow(races.table))
+races.table=cbind(races.table,n.index)
+
+lm.model=lm(Time~Distance+Climb,data=races.table)
+ggplot(lm.model,aes(x=n.index,y=rstudent(lm.model)))+geom_point(color="orange")+geom_line(y=-3)+geom_line(y=3)+labs(title = "External Studentized Residuals",x="Observation",y="Residuals")
+
+```
+Cook's D
+```{r}
+##Cook's D
+D.cut=4/(nrow(races.table)-3-1)
+ggplot(lm.model,aes(x=n.index,y=cooks.distance(lm.model)))+geom_point(color="orange")+geom_line(y=D.cut)+labs(title = "Cook's D",x="Observation",y="Cook's Distance")
+```
+DFFITS
+```{r}
+df.cut=2*(sqrt((3+1)/nrow(races.table)))
+
+ggplot(lm.model,aes(x=n.index,y=dffits(lm.model))) +geom_point(color="orange") +geom_line(y=df.cut) +geom_line(y=-df.cut)+labs(title = "DFFITS",x="Observation",y="DFFITS")
+```
+Hat Values
+```{r}
+hat.cut=2*(3+1)/nrow(races.table)
+
+ggplot(lm.model,aes(x=n.index,y=hatvalues(lm.model)))+geom_point(color="orange")+geom_line(y=hat.cut)+labs(title = "Hat values",x="Observation",y="Hat Values")
+```
+DFBETA
+```{r}
+db.cut=2/sqrt(nrow(races.table))
+
+ggplot(lm.model,aes(x=n.index,y=dfbetas(lm.model)[,'Climb']))+geom_point(color="orange")+
+  geom_line(y=db.cut)+geom_line(y=-db.cut)+labs(title = "DFBETA for Climb",x="Observation",y="DFBETAS")
+
+ggplot(lm.model,aes(x=n.index,y=dfbetas(lm.model)[,'Distance']))+geom_point(color="orange")+geom_line(y=db.cut)+
+  geom_line(y=-db.cut)+labs(title = "DFBETA for Distance",x="Observation",y="DFBETAS")
+```
+How to Handle Influential Observations
+
+1. Recheck the data to ensure that no transcription or data entry errors 
+occurred.
+
+2. If the data is valid, one possible explanation is that 
+the model is not adequate.
+ A model with higher-order terms, such as polynomials and 
+interactions between the variables, might be necessary to fit the 
+data well.
+ Nonlinear model
+
+3. Determine the robustness of the inference by running the analysis 
+both with and without the influential observations.
+
+4. Robust Regression (Covered Later in Program)
+
+5. Weighted Least Squares (WLS)
+
+```{r}
+cor(mtcars)
+lm.model=lm(mpg~.,data=mtcars)
+vif(lm.model)
+```
+
