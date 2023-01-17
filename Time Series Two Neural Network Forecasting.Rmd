@@ -1,0 +1,33 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Autoregressive Neural Network Model
+```{r}
+NN.Model <- nnetar(diff(training, 12), p = 2, P = 3)
+NN.Forecast <- forecast::forecast(NN.Model, h = 12)
+plot(NN.Forecast)
+```
+Neural Network Forecasts
+```{r}
+Pass.Forecast <- rep(NA, 12)
+for(i in 1:12){
+Pass.Forecast[i] <- Passenger[length(Passenger) - 12 + i] + 
+forecast::forecast(NN.Model, h = 24)$mean[i]
+}
+Pass.Forecast <- ts(Pass.Forecast, start = c(2007, 4), frequency = 12)
+plot(training, main = "US Airline Passengers ARIMA Model Forecasts", 
+xlab = "Date", ylab = "Passengers (Thousands)", 
+xlim = c(1990, 2009), ylim = c(30000,80000))
+lines(Pass.Forecast, col = "blue")
+abline(v = 2007.25, col = "red", lty = "dashed")
+NN.error <- test - Pass.Forecast
+NN.MAE <- mean(abs(NN.error))
+NN.MAPE <- mean(abs(NN.error)/abs(test))*100
+```
+```{r}
+print(NN.MAE)
+print(NN.MAPE)
+```
+
